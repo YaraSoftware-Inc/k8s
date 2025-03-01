@@ -1,0 +1,1 @@
+kind create cluster --name workshop-n-gine --image kindest/node:v1.29.2 --config kind-config.yaml
