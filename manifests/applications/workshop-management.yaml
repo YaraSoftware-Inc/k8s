@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshop-management
+  labels:
+      app: workshop-management
+spec:
+  selector:
+    matchLabels:
+      app: workshop-management
+  template:
+    metadata:
+      labels:
+        app: workshop-management
+    spec:
+      containers:
+      - name: workshop-management
+        image: jhosepmyr/workshop-management:0.0.2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+        env:
+        - name: DB_HOST
+          value: workshop-database
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: workshop-database
+              key: postgres_db
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: workshop-database
+              key: postgres_user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: workshop-database
+              key: postgres_password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: workshop-management
+  labels:
+    app: workshop-management
+spec:
+    ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
+    selector:
+        app: workshop-management
