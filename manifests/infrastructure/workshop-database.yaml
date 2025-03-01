@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: workshop-database
+spec:
+  selector:
+    matchLabels:
+      app: workshop-database
+  serviceName: workshop-database
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: workshop-database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: workshop-database
+                  key: postgres_db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: workshop-database
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workshop-database
+                  key: postgres_password
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: workshop-database
+      volumes:
+        - name: workshop-init-db
+          configMap:
+            name: workshop-database-config
+        - name: workshop-database
+          persistentVolumeClaim:
+            claimName: workshop-database
+
+---
+
+apiVersion: v1
+data:
+  postgres_db: d29ya3Nob3Bz
+  postgres_password: cGFzc3dvcmQ=
+  postgres_user: dXNlcg==
+kind: Secret
+metadata:
+  name: workshop-database
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: workshop-database
+  name: workshop-database
+spec:
+  ports:
+    - name: 5432-5432
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    app: workshop-database
+  type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: workshop-database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 0.25Gi
+  storageClassName: manual
+  hostPath:
+    path: /data/workshop_database
+    type: DirectoryOrCreate
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: workshop-database
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 0.25Gi
+
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workshop-database-config
+data:
+  init-db.sql: |
+    CREATE DATABASE IF NOT EXISTS workshops;
+
+---
+
+# RUNNING: kubectl apply -f k8s/manifests/infrastructure/workshop-database.yaml
