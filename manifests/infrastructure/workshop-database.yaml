@@ -108,24 +108,6 @@ spec:
 ---
 
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: workshop-database-volume
-  labels:
-    type: local
-    app: workshop-database
-spec:
-    storageClassName: manual
-    capacity:
-        storage: 0.1Gi
-    accessModes:
-        - ReadWriteMany
-    hostPath:
-      path: "/data/workshop-database"
-
----
-
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: workshop-database-config
