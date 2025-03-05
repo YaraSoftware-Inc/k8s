@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: staff-database
+  namespace: workshop-n-gine
+spec:
+  selector:
+    matchLabels:
+      app: staff-database
+  serviceName: staff-database
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: staff-database
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:9.2.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_db
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_password
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_root_password
+          volumeMounts:
+            - mountPath: /var/lib/mysql/data
+              name: staff-database-data
+              subPath: data
+      volumes:
+        - name: staff-init-db
+          configMap:
+            name: staff-database-config
+        - name: staff-database-data
+          persistentVolumeClaim:
+            claimName: staff-database-volume-claim
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: staff-database-secrets
+  namespace: workshop-n-gine
+data:
+  mysql_db: c3RhZmZfbWFuYWdlbWVudA==
+  mysql_password: cGFzc3dvcmQ=
+  mysql_root_password: cGFzc3dvcmQ=
+  mysql_user: dXNlcg==
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: staff-database
+  namespace: workshop-n-gine
+  labels:
+    app: staff-database
+spec:
+  ports:
+    - name: 3303-3306
+      port: 3303
+      protocol: TCP
+      targetPort: 3306
+  selector:
+    app: staff-database
+  type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: staff-database-volume-claim
+  namespace: workshop-n-gine
+  labels:
+    app: staff-database
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 0.1Gi
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: staff-database-config
+  namespace: workshop-n-gine
+  labels:
+    app: staff-database
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS staff_management;
