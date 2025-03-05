@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: workshop-management
-        image: jhosepmyr/workshop-management:0.0.2
+        image: jhosepmyr/workshop-management:1.2.0
         imagePullPolicy: Always
         ports:
         - containerPort: 9000
