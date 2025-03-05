@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: staff-management
-          image: jhosepmyr/staff-management:1.1.0
+          image: jhosepmyr/staff-management:0.0.1
           imagePullPolicy: Always
           resources:
             requests:
