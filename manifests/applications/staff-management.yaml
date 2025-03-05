@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staff-management
+  namespace: workshop-n-gine
+  labels:
+      app: staff-management
+spec:
+  selector:
+    matchLabels:
+      app: staff-management
+  template:
+    metadata:
+        labels:
+            app: staff-management
+    spec:
+      containers:
+        - name: staff-management
+          image: jhosepmyr/staff-management:1.1.0
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "1Gi"
+          ports:
+            - containerPort: 9400
+          env:
+            - name: DB_HOST
+              value: staff-database
+            - name: DB_PORT
+              value: "3303"
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_db
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staff-database-secrets
+                  key: mysql_password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: staff-management
+  namespace: workshop-n-gine
+  labels:
+    app: staff-management
+spec:
+    selector:
+        app: staff-management
+    ports:
+      - protocol: TCP
+        port: 9400
+        targetPort: 9400
