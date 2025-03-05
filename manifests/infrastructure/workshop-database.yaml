@@ -78,21 +78,6 @@ spec:
   type: ClusterIP
 
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: workshop-database
-spec:
-  accessModes:
-    - ReadWriteOnce
-  capacity:
-    storage: 0.25Gi
-  storageClassName: manual
-  hostPath:
-    path: /data/workshop_database
-    type: DirectoryOrCreate
-
----
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -100,7 +85,7 @@ metadata:
   name: workshop-database
   namespace: workshop-n-gine
 spec:
-  storageClassName: manual
+  storageClassName: standard
   accessModes:
     - ReadWriteOnce
   resources:
