@@ -51,9 +51,8 @@ spec:
                   name: staff-database-secrets
                   key: mysql_root_password
           volumeMounts:
-            - mountPath: /var/lib/mysql/data
+            - mountPath: /var/lib/mysql
               name: staff-database-data
-              subPath: data
       volumes:
         - name: staff-init-db
           configMap:
