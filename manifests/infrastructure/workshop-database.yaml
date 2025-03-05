@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: workshop-database
+  namespace: workshop-n-gine
 spec:
   selector:
     matchLabels:
@@ -48,22 +49,24 @@ spec:
 ---
 
 apiVersion: v1
+kind: Secret
+metadata:
+  name: workshop-database
+  namespace: workshop-n-gine
 data:
   postgres_db: d29ya3Nob3Bz
   postgres_password: cGFzc3dvcmQ=
   postgres_user: dXNlcg==
-kind: Secret
-metadata:
-  name: workshop-database
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
+  name: workshop-database
+  namespace: workshop-n-gine
   labels:
     app: workshop-database
-  name: workshop-database
 spec:
   ports:
     - name: 5432-5432
@@ -75,7 +78,6 @@ spec:
   type: ClusterIP
 
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -96,6 +98,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: workshop-database
+  namespace: workshop-n-gine
 spec:
   storageClassName: manual
   accessModes:
@@ -104,13 +107,13 @@ spec:
     requests:
       storage: 0.25Gi
 
-
 ---
 
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: workshop-database-config
+  namespace: workshop-n-gine
 data:
   init-db.sql: |
     CREATE DATABASE IF NOT EXISTS workshops;

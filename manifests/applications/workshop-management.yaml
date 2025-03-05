@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: workshop-management
+  namespace: workshop-n-gine
   labels:
       app: workshop-management
 spec:
@@ -46,6 +47,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: workshop-management
+  namespace: workshop-n-gine
   labels:
     app: workshop-management
 spec:
