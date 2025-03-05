@@ -9,6 +9,8 @@ spec:
       app: workshop-database
   serviceName: workshop-database
   replicas: 1
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -17,6 +19,7 @@ spec:
       containers:
         - name: postgres
           image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: "100m"
@@ -44,14 +47,15 @@ spec:
                   key: postgres_password
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: workshop-database
+              name: workshop-database-data
+              subPath: data
       volumes:
         - name: workshop-init-db
           configMap:
             name: workshop-database-config
-        - name: workshop-database
+        - name: workshop-database-data
           persistentVolumeClaim:
-            claimName: workshop-database
+            claimName: workshop-database-volume-claim
 
 ---
 
@@ -89,15 +93,35 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: workshop-database
+  name: workshop-database-volume-claim
   namespace: workshop-n-gine
+  labels:
+    app: workshop-database
 spec:
-  storageClassName: standard
+  storageClassName: manual
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 0.1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: workshop-database-volume
+  labels:
+    type: local
+    app: workshop-database
+spec:
+    storageClassName: manual
+    capacity:
+        storage: 0.1Gi
+    accessModes:
+        - ReadWriteMany
+    hostPath:
+      path: "/data/workshop-database"
 
 ---
 
@@ -106,6 +130,8 @@ kind: ConfigMap
 metadata:
   name: workshop-database-config
   namespace: workshop-n-gine
+  labels:
+    app: workshop-database
 data:
   init-db.sql: |
     CREATE DATABASE IF NOT EXISTS workshops;
