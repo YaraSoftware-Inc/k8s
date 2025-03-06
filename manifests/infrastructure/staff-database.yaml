@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:8.0
+          image: mysql:9.2.0
           imagePullPolicy: Always
           resources:
             requests:
@@ -73,9 +73,9 @@ metadata:
   namespace: workshop-n-gine
 data:
   mysql_db: c3RhZmZfbWFuYWdlbWVudA==
-  mysql_password: cGFzc3dvcmQ=
-  mysql_root_password: cGFzc3dvcmQ=
-  mysql_user: dXNlcg==
+  mysql_password: cGFzc3dvcmQxMjM=
+  mysql_root_password: cGFzc3dvcmQxMjM0NQ==
+  mysql_user: amhvc2VwbXly
 
 ---
 
