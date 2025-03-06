@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-operations
+  namespace: workshop-n-gine
+  labels:
+    app: service-operations
+spec:
+  selector:
+    matchLabels:
+      app: service-operations
+  template:
+    metadata:
+      labels:
+        app: service-operations
+    spec:
+        containers:
+          - name: service-operations
+            image: jhosepmyr/service-operations:0.0.1
+            imagePullPolicy: Always
+            resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "1Gi"
+                  cpu: "500m"
+            ports:
+                - containerPort: 9200
+            env:
+              - name: DB_HOST
+                value: service-operations-database
+              - name: DB_PORT
+                value: "3305"
+              - name: DB_NAME
+                valueFrom:
+                  secretKeyRef:
+                    name: service-operations-database-secrets
+                    key: mysql_db
+              - name: DB_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: service-operations-database-secrets
+                    key: mysql_user
+              - name: DB_PASS
+                valueFrom:
+                  secretKeyRef:
+                    name: service-operations-database-secrets
+                    key: mysql_password
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-operations
+  namespace: workshop-n-gine
+  labels:
+    app: service-operations
+spec:
+    selector:
+        app: service-operations
+    ports:
+        - protocol: TCP
+          port: 9200
+          targetPort: 9200
