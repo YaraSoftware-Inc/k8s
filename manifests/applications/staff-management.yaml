@@ -42,7 +42,7 @@ spec:
                 secretKeyRef:
                   name: staff-database-secrets
                   key: mysql_user
-            - name: DB_PASSWORD
+            - name: DB_PASS
               valueFrom:
                 secretKeyRef:
                   name: staff-database-secrets

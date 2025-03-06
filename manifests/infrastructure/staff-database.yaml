@@ -19,7 +19,7 @@ spec:
       containers:
         - name: mysql
           image: mysql:8.0
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: "100m"
@@ -51,6 +51,8 @@ spec:
                   name: staff-database-secrets
                   key: mysql_root_password
           volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: staff-init-db
             - mountPath: /var/lib/mysql
               name: staff-database-data
               subPath: staff_management
@@ -86,7 +88,7 @@ metadata:
     app: staff-database
 spec:
   ports:
-    - name: 3303-3306
+    - name: staff-database
       port: 3303
       protocol: TCP
       targetPort: 3306
