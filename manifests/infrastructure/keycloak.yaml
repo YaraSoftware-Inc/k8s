@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-server
+  namespace: workshop-n-gine
+  labels:
+      app: keycloak-server
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+       app: keycloak-server
+  template:
+    metadata:
+        labels:
+            app: keycloak-server
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.1.0
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
+          args: ["start-dev", "--import-realm"]
+          env:
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://keycloak-database:5435/users
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-database-secrets
+                  key: keycloak_db_user
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-database-secrets
+                  key: keycloak_db_password
+            - name: KC_FEATURES
+              value: token-exchange,admin-fine-grained-authz
+            - name: KC_HOSTNAME
+              value: keycloak-service
+            - name: KC_HOSTNAME_PORT
+              value: "8080"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: "false"
+            - name: KC_LOG_LEVEL
+              value: info
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: keycloak_admin_user
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: keycloak_admin_password
+          volumeMounts:
+            - name: keycloak-realm
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: keycloak-realm
+          configMap:
+            name: keycloak-realm-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: workshop-n-gine
+  labels:
+    app: keycloak
+spec:
+    selector:
+        app: keycloak-server
+    ports:
+        - name: keycloak
+          protocol: TCP
+          port: 8080
+          targetPort: 8080
+    type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-secrets
+  namespace: workshop-n-gine
+data:
+  keycloak_admin_password: cGFzc3dvcmQxMjM0NQ==
+  keycloak_admin_user: amhvc2VwbXly
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: workshop-n-gine
+data:
+  keycloak-realm-import.json: |
