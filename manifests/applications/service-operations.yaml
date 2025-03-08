@@ -16,7 +16,7 @@ spec:
     spec:
         containers:
           - name: service-operations
-            image: jhosepmyr/service-operations:1.1.0
+            image: jhosepmyr/service-operations:1.2.0
             imagePullPolicy: Always
             resources:
                 requests:
