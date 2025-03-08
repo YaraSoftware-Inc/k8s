@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak-database
+  namespace: workshop-n-gine
+  labels:
+      app: keycloak-database
+spec:
+  selector:
+    matchLabels:
+      app: keycloak-database
+  serviceName: keycloak-database
+  replicas: 1
+  updateStrategy:
+      type: RollingUpdate
+  template:
+    metadata:
+        labels:
+            app: keycloak-database
+    spec:
+        containers:
+          - name: postgres
+            image: postgres:17-alpine
+            imagePullPolicy: Always
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+              limits:
+                cpu: "200m"
+                memory: "256Mi"
+            ports:
+              - containerPort: 5432
+            env:
+              - name: POSTGRES_DB
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-database-secrets
+                    key: keycloak_db
+              - name: POSTGRES_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-database-secrets
+                    key: keycloak_db_user
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-database-secrets
+                    key: keycloak_db_password
+            volumeMounts:
+              - mountPath: /var/lib/postgresql/data
+                name: keycloak-database-data
+        volumes:
+          - name: keycloak-database-data
+            persistentVolumeClaim:
+              claimName: keycloak-database-volume-claim
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-database-secrets
+  namespace: workshop-n-gine
+data:
+  keycloak_db: a2V5Y2xvYWs=
+  keycloak_db_password: cGFzc3dvcmQxMjM0NQ==
+  keycloak_db_user: amhvc2VwbXly
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-database
+  namespace: workshop-n-gine
+  labels:
+    app: keycloak-database
+spec:
+    ports:
+        - name: keycloak-database
+          protocol: TCP
+          port: 5435
+          targetPort: 5432
+    selector:
+      app: keycloak-database
+    type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-database-volume-claim
+  namespace: workshop-n-gine
+  labels:
+    app: keycloak-database
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 0.1Gi
