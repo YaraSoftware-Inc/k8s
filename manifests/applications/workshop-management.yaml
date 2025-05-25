@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: workshop-management
-        image: jhosepmyr/workshop-management:1.2.0
+        image: jhosepmyr/workshop-management:1.3.0
         imagePullPolicy: Always
         resources:
           requests:
